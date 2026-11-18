@@ -1,5 +1,6 @@
 import math
 from datetime import datetime, timedelta
+from statistics import median
 from typing import Any
 
 from config import PREDICTION_HORIZONS_MINUTES
@@ -109,6 +110,8 @@ def _find_similar_patches(
     for p in past_majors:
         cutoff = p["release_dt"] - timedelta(seconds=1)
         hist_feat = extract_features(cutoff, index)
+        rel_minsk = p["release_dt"].astimezone(MINSK_TZ)
+        rel_mins_of_day = rel_minsk.hour * 60 + rel_minsk.minute
 
         dist = (
             abs(features["st_72h"] - hist_feat["st_72h"]) / 4.0
@@ -121,6 +124,8 @@ def _find_similar_patches(
             {
                 "patch": p["patch"],
                 "similarity_pct": similarity,
+                "release_time_minsk": rel_minsk.strftime("%H:%M"),
+                "release_mins_of_day": rel_mins_of_day,
                 "hist_st_72h": hist_feat["st_72h"],
                 "hist_st_24h": hist_feat["st_24h"],
                 "hist_st_6h": hist_feat["st_6h"],
@@ -132,25 +137,97 @@ def _find_similar_patches(
     return matches[:3]
 
 
-def _estimate_window_note(features: dict[str, Any], readiness: float) -> str:
-    """Экспериментальная оценка наиболее вероятного окна выхода (Минск)."""
+def _estimate_release_eta(
+    now_utc: datetime,
+    features: dict[str, Any],
+    readiness: float,
+    similar_patches: list[dict[str, Any]],
+    past_majors: list[dict[str, Any]],
+    index: EventIndex,
+) -> dict[str, Any]:
+    """
+    Рассчитывает ориентировочное окно выхода патча по архиву прошлых крупных релизов.
+    """
+    minsk_now = now_utc.astimezone(MINSK_TZ)
+    now_mins_of_day = minsk_now.hour * 60 + minsk_now.minute
+
+    ref_mins_of_day: list[int] = []
+    ref_delays: list[float] = []
+
+    for m in similar_patches:
+        if m["similarity_pct"] >= 45.0:
+            ref_mins_of_day.append(m["release_mins_of_day"])
+            if m["hist_last_mins"] <= 260.0:
+                ref_delays.append(m["hist_last_mins"])
+
+    if not ref_mins_of_day and past_majors:
+        for p in past_majors:
+            rel_m = p["release_dt"].astimezone(MINSK_TZ)
+            ref_mins_of_day.append(rel_m.hour * 60 + rel_m.minute)
+
+    if not ref_delays and past_majors:
+        for p in past_majors:
+            cutoff = p["release_dt"] - timedelta(seconds=1)
+            f = extract_features(cutoff, index)
+            if f["st_mins_since_last"] <= 260.0:
+                ref_delays.append(f["st_mins_since_last"])
+
+    low_m = min(ref_mins_of_day) if ref_mins_of_day else 68
+    med_m = int(median(ref_mins_of_day)) if ref_mins_of_day else 167
+    high_m = max(ref_mins_of_day) if ref_mins_of_day else 232
+
+    def fmt_hhmm(total_mins: int) -> str:
+        total_mins = total_mins % 1440
+        return f"{total_mins // 60:02d}:{total_mins % 60:02d}"
+
+    clock_window = f"{fmt_hhmm(low_m)}–{fmt_hhmm(high_m)}"
+    clock_median = fmt_hhmm(med_m)
+
+    mins_to_med = (med_m - now_mins_of_day) % 1440
+    in_night = 0 <= now_mins_of_day <= 270
+    elapsed_st = features["st_mins_since_last"]
+
     if readiness < 0.25:
-        return "Недостаточно активности Staging для оценки времени выхода"
+        summary = (
+            f"Активность низкая; базовое историческое окно релизов: "
+            f"{clock_window} Минск (медиана {clock_median})"
+        )
+        return {"summary": summary, "clock_window": clock_window, "clock_median": clock_median}
 
-    if features["in_release_window"]:
-        if features["st_mins_since_last"] <= 240:
-            return (
-                f"Идет окно релизов (01:00–04:00 Минск); "
-                f"после последнего Staging прошло {features['st_mins_since_last']:.0f} мин "
-                f"(обычно перед релизом 80–230 мин, экспериментально)"
+    if (in_night or now_mins_of_day >= 1260) and elapsed_st <= 240.0 and features["st_24h"] >= 2:
+        d_low = int(min(ref_delays)) if ref_delays else 80
+        d_med = int(median(ref_delays)) if ref_delays else 112
+        d_high = int(max(ref_delays)) if ref_delays else 227
+
+        rem_low = max(5, int(d_low - elapsed_st))
+        rem_med = max(15, int(d_med - elapsed_st))
+        rem_high = max(30, int(d_high - elapsed_st))
+
+        eta_start = (minsk_now + timedelta(minutes=rem_low)).strftime("%H:%M")
+        eta_end = (minsk_now + timedelta(minutes=rem_high)).strftime("%H:%M")
+        summary = (
+            f"Через ~{rem_low}–{rem_high} мин (ориентир ~{rem_med} мин → "
+            f"{eta_start}–{eta_end} Минск; окно архива {clock_window})"
+        )
+        return {"summary": summary, "clock_window": clock_window, "clock_median": clock_median}
+
+    if in_night:
+        if now_mins_of_day <= high_m:
+            rem = max(5, high_m - now_mins_of_day)
+            summary = (
+                f"Идет окно релизов ({clock_window} Минск, медиана {clock_median}; "
+                f"до конца окна ~{rem} мин)"
             )
-        return "Идет окно релизов (01:00–04:00 Минск), но свежих билдов Staging за 4ч нет"
+        else:
+            summary = f"Пиковое окно ({clock_window} Минск) на сегодня уже прошло"
+        return {"summary": summary, "clock_window": clock_window, "clock_median": clock_median}
 
-    mins_left = features["mins_to_valve_window"]
-    return (
-        f"Обычно релиз происходит в 01:00–04:00 Минск "
-        f"(до пика окна ~{mins_left / 60.0:.1f} ч, экспериментально)"
+    hours_to = mins_to_med / 60.0
+    summary = (
+        f"Ближайшее окно по архиву: {clock_window} Минск "
+        f"(медиана {clock_median}, через ~{hours_to:.1f} ч при вечернем ускорении Staging)"
     )
+    return {"summary": summary, "clock_window": clock_window, "clock_median": clock_median}
 
 
 def _build_explanation(
@@ -164,7 +241,7 @@ def _build_explanation(
 
     if features["st_7d"] >= 10:
         reasons.append(
-            f"Сильный 7-дневный разогрев Staging: {features['st_7d']} смен (+{features['st_d7d']} билдов)"
+            f"7-дневный разогрев Staging: {features['st_7d']} смен (+{features['st_d7d']} билдов)"
         )
     elif features["st_72h"] >= 4:
         reasons.append(
@@ -220,7 +297,7 @@ def predict(
     index: EventIndex,
     patches: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Возвращает откалиброванный краткосрочный прогноз на 15, 30, 60, 120 и 180 минут."""
+    """Возвращает краткосрочный прогноз на 15, 30, 60, 120 и 180 минут и оценку окна выхода."""
     now_ts = now_utc.timestamp()
     past_majors = [
         p for p in patches if p["is_major"] and p["release_ts"] < now_ts
@@ -250,7 +327,9 @@ def predict(
 
     similar_patches = _find_similar_patches(now_utc, features, index, patches)
     reasons, missing, level = _build_explanation(features, readiness, probabilities)
-    window_note = _estimate_window_note(features, readiness)
+    eta = _estimate_release_eta(
+        now_utc, features, readiness, similar_patches, past_majors, index
+    )
 
     return {
         "evaluated_at_utc": now_utc.isoformat(),
@@ -263,5 +342,6 @@ def predict(
         "similar_patches": similar_patches,
         "reasons": reasons,
         "missing": missing,
-        "window_note": window_note,
+        "eta": eta,
+        "window_note": eta["summary"],
     }
