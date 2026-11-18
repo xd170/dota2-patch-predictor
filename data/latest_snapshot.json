@@ -1,7 +1,7 @@
 {
   "target_patch": "7.42",
-  "collected_at": "2026-11-18T14:15:40.109958+00:00",
-  "evaluated_at_minsk": "2026-11-18 17:15",
+  "collected_at": "2026-11-18T14:20:38.986914+00:00",
+  "evaluated_at_minsk": "2026-11-18 17:20",
   "signal_level": "elevated",
   "readiness_pct": 39.5,
   "probabilities": {
@@ -19,7 +19,7 @@
     "days_since_major": 238.6
   },
   "eta": {
-    "summary": "Ближайшее окно по архиву: 01:08–03:51 Минск (медиана 02:47, через ~9.5 ч при вечернем ускорении Staging)",
+    "summary": "Ближайшее окно по архиву: 01:08–03:51 Минск (медиана 02:47, через ~9.4 ч при вечернем ускорении Staging)",
     "clock_window": "01:08–03:51",
     "clock_median": "02:47"
   },
