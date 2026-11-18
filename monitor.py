@@ -36,6 +36,30 @@ def _minutes_since(iso_ts: str | None, now_utc: datetime) -> float:
         return 99999.0
 
 
+def _detect_steam_branch_change(
+    branch_name: str,
+    prev_val: Any,
+    curr_val: int | None,
+) -> dict[str, Any] | None:
+    if prev_val is None or curr_val is None:
+        return None
+    try:
+        prev_int = int(prev_val)
+    except (TypeError, ValueError):
+        return None
+    # Игнорируем разовый переход со старой схемы UpToDateCheck (37) на IGCVersion (6976+)
+    if prev_int < 1000 and curr_val >= 1000:
+        return None
+    if prev_int != curr_val:
+        return {
+            "branch": branch_name,
+            "old_version": prev_int,
+            "new_version": curr_val,
+            "delta": curr_val - prev_int,
+        }
+    return None
+
+
 def main() -> None:
     print("========== DOTA 2 PATCH PREDICTOR ==========")
     force_notify = os.getenv("FORCE_NOTIFY", "").lower() == "true"
@@ -49,7 +73,7 @@ def main() -> None:
 
     steam_versions = check_steam_versions()
     steam_announcement = find_steam_patch_announcement(TARGET_PATCH)
-    print(f"Steam API прямая проверка: {steam_versions}")
+    print(f"Steam API прямая проверка (IGCVersion): {steam_versions}")
 
     state = load_state()
 
@@ -57,20 +81,14 @@ def main() -> None:
         if ensure_bot_commands():
             state["telegram_commands_registered"] = True
 
-    prev_steam_pub = state.get("last_steam_public_version")
     curr_steam_pub = steam_versions.get("public")
-    steam_public_change: dict[str, Any] | None = None
-    if (
-        prev_steam_pub is not None
-        and curr_steam_pub is not None
-        and prev_steam_pub != curr_steam_pub
-    ):
-        steam_public_change = {
-            "branch": "public",
-            "old_version": prev_steam_pub,
-            "new_version": curr_steam_pub,
-            "delta": curr_steam_pub - prev_steam_pub,
-        }
+    curr_steam_stg = steam_versions.get("staging")
+    steam_public_change = _detect_steam_branch_change(
+        "public", state.get("last_steam_public_version"), curr_steam_pub
+    )
+    steam_staging_change = _detect_steam_branch_change(
+        "staging", state.get("last_steam_staging_version"), curr_steam_stg
+    )
 
     # Аварийный режим, если Finargot временно не отвечает
     if latest is None:
@@ -96,13 +114,30 @@ def main() -> None:
                 evaluated_minsk=minsk_str,
                 public_change=steam_public_change,
                 confirmed_via_patches=False,
-                announcement=None,
+                announcement=steam_announcement,
             )
             send_telegram_message(msg)
             state["public_release_alerted_version"] = steam_public_change["new_version"]
+        elif (
+            steam_staging_change
+            and not state.get("target_patch_released", False)
+            and state.get("last_notified_staging_version") != steam_staging_change["new_version"]
+        ):
+            res = send_telegram_message(
+                f"⚡ <b>ОБНОВЛЕНИЕ STAGING (прямой Steam API, цель: {TARGET_PATCH})</b>\n"
+                f"🕒 Минск: <b>{minsk_str}</b>\n"
+                f"• STAGING: <code>{steam_staging_change['old_version']} → "
+                f"{steam_staging_change['new_version']}</code> (+{steam_staging_change['delta']})\n"
+                f"<i>Источник Finargot временно недоступен, сигнал пойман напрямую от Valve.</i>"
+            )
+            if not res.get("skipped"):
+                state["last_notified_staging_version"] = steam_staging_change["new_version"]
+                state["last_notified_at_utc"] = now_utc.isoformat()
 
         if curr_steam_pub is not None:
             state["last_steam_public_version"] = curr_steam_pub
+        if curr_steam_stg is not None:
+            state["last_steam_staging_version"] = curr_steam_stg
         save_state(state)
         return
 
@@ -126,6 +161,11 @@ def main() -> None:
     prev_branches = state.get("last_branches", {})
     changes = detect_branch_changes(prev_branches, curr_branches)
 
+    # Если Steam IGCVersion увидел новый Staging раньше Finargot — дополняем список изменений
+    finargot_staging_change = next((c for c in changes if c["branch"] == "staging"), None)
+    if finargot_staging_change is None and steam_staging_change is not None:
+        changes.append(steam_staging_change)
+
     if changes:
         print(f"Обнаружены изменения веток: {changes}")
     else:
@@ -141,6 +181,12 @@ def main() -> None:
     )
 
     staging_change = next((c for c in changes if c["branch"] == "staging"), None)
+    if (
+        staging_change is not None
+        and state.get("last_notified_staging_version") == staging_change["new_version"]
+    ):
+        staging_change = None
+
     public_change = next((c for c in changes if c["branch"] == "public"), None) or steam_public_change
 
     # 1. Официальное подтверждение выхода целевого патча
@@ -236,6 +282,8 @@ def main() -> None:
     state["last_branches"] = curr_branches
     if curr_steam_pub is not None:
         state["last_steam_public_version"] = curr_steam_pub
+    if curr_steam_stg is not None:
+        state["last_steam_staging_version"] = curr_steam_stg
     if "staging" in curr_branches and state.get("last_notified_staging_version") is None:
         state["last_notified_staging_version"] = curr_branches["staging"].get("client_version")
 
