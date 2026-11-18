@@ -124,7 +124,7 @@ def format_prediction_message(
     similar = prediction.get("similar_patches", [])
     if similar:
         sim_parts = [
-            f"{s['patch']} ({s['similarity_pct']}%, вышел в {s['release_time_minsk']})"
+            f"{s['patch']} ({s['similarity_pct']}%, вышел в {s.get('release_time_minsk', '??:??')})"
             for s in similar[:2]
         ]
         lines.extend(
@@ -143,13 +143,37 @@ def format_prediction_message(
     return "\n".join(lines)
 
 
+def format_daily_pulse_message(
+    prediction: dict[str, Any],
+    steam_versions: dict[str, int | None],
+) -> str:
+    """Короткая вечерняя сводка в 21:00 Минск, подтверждающая, что монитор работает."""
+    feat = prediction["features"]
+    eta_summary = prediction.get("eta", {}).get("summary", "")
+    pub_v = steam_versions.get("public")
+    pub_note = f" | Steam Public: <code>{pub_v}</code>" if pub_v else ""
+
+    lines = [
+        f"🌙 <b>ВЕЧЕРНИЙ ПУЛЬС МОНИТОРА (цель: {html.escape(TARGET_PATCH)})</b>",
+        f"🕒 Время (Минск): <b>{html.escape(prediction['evaluated_at_minsk'])}</b>",
+        f"📊 Индекс готовности к ночи: <b>{prediction['readiness_pct']}%</b>{pub_note}",
+        f"• Staging за 24ч / 7д: <b>{feat['st_24h']} / {feat['st_7d']}</b> смен",
+    ]
+    if eta_summary:
+        lines.append(f"• Ориентир: {html.escape(eta_summary)}")
+    lines.append("")
+    lines.append("<i>Монитор активен. Если ночью начнется серия Staging — придет срочный сигнал.</i>")
+    return "\n".join(lines)
+
+
 def format_release_message(
     patch_name: str,
     evaluated_minsk: str,
     public_change: dict[str, Any] | None,
     confirmed_via_patches: bool,
+    announcement: dict[str, Any] | None = None,
 ) -> str:
-    """Формирует сообщение о выходе патча."""
+    """Формирует сообщение о выходе патча со ссылкой на пост Valve (если доступен)."""
     lines = [
         f"🚨 <b>ВЕРОЯТНО, ПАТЧ {html.escape(patch_name)} УЖЕ ВЫШЕЛ!</b>",
         f"🕒 Время (Минск): <b>{html.escape(evaluated_minsk)}</b>",
@@ -160,9 +184,14 @@ def format_release_message(
             f"{html.escape(str(public_change['new_version']))}</code>"
         )
     if confirmed_via_patches:
-        lines.append("• Подтверждено в списке официальных патчей.")
+        lines.append("• Подтверждено официальным списком / новостями Steam.")
     else:
         lines.append("• Обновился Public-сервер на фоне высокой активности Staging.")
+
+    if announcement and announcement.get("url"):
+        title = html.escape(str(announcement.get("title", "Патчноут в Steam")))
+        url = html.escape(str(announcement["url"]), quote=True)
+        lines.append(f'• 📰 <a href="{url}">{title}</a>')
 
     lines.extend(
         [
