@@ -12,18 +12,14 @@ from storage import (
     detect_branch_changes,
     extract_branch_snapshot,
     load_state,
+    save_latest_snapshot,
     save_state,
 )
 from telegram_notifier import (
     ensure_bot_commands,
-    fetch_pending_telegram_commands,
-    format_builds_message,
     format_daily_pulse_message,
-    format_help_message,
-    format_history_message,
     format_prediction_message,
     format_release_message,
-    format_status_message,
     send_telegram_message,
 )
 
@@ -38,45 +34,6 @@ def _minutes_since(iso_ts: str | None, now_utc: datetime) -> float:
         return (now_utc - prev_dt).total_seconds() / 60.0
     except Exception:
         return 99999.0
-
-
-def _handle_interactive_commands(
-    pending_cmds: list[tuple[str, str]],
-    prediction: dict[str, Any],
-    curr_branches: dict[str, dict[str, Any]],
-    events: list[dict[str, Any]],
-    steam_versions: dict[str, int | None],
-    now_utc: datetime,
-) -> None:
-    """Отвечает на команды и нажатия кнопок строго тем чатам, которые их отправили."""
-    if not pending_cmds:
-        return
-
-    print(f"Обработка команд Telegram: {pending_cmds}")
-    for chat_id, cmd in pending_cmds:
-        if cmd == "start":
-            send_telegram_message(format_help_message(), chat_ids=[chat_id])
-            send_telegram_message(
-                format_status_message(prediction, curr_branches, steam_versions, now_utc),
-                chat_ids=[chat_id],
-            )
-        elif cmd == "help":
-            send_telegram_message(format_help_message(), chat_ids=[chat_id])
-        elif cmd == "status":
-            send_telegram_message(
-                format_status_message(prediction, curr_branches, steam_versions, now_utc),
-                chat_ids=[chat_id],
-            )
-        elif cmd == "builds":
-            send_telegram_message(
-                format_builds_message(curr_branches, events, steam_versions, now_utc),
-                chat_ids=[chat_id],
-            )
-        elif cmd == "history":
-            send_telegram_message(
-                format_history_message(prediction),
-                chat_ids=[chat_id],
-            )
 
 
 def main() -> None:
@@ -99,12 +56,6 @@ def main() -> None:
     if not state.get("telegram_commands_registered", False):
         if ensure_bot_commands():
             state["telegram_commands_registered"] = True
-
-    pending_cmds, max_upd_id = fetch_pending_telegram_commands(
-        state.get("last_telegram_update_id")
-    )
-    if max_upd_id is not None:
-        state["last_telegram_update_id"] = max_upd_id
 
     prev_steam_pub = state.get("last_steam_public_version")
     curr_steam_pub = steam_versions.get("public")
@@ -150,16 +101,6 @@ def main() -> None:
             send_telegram_message(msg)
             state["public_release_alerted_version"] = steam_public_change["new_version"]
 
-        for chat_id, cmd in pending_cmds:
-            if cmd in ("start", "help"):
-                send_telegram_message(format_help_message(), chat_ids=[chat_id])
-            else:
-                send_telegram_message(
-                    f"⚠️ Источник Finargot временно недоступен ({minsk_str} Минск). "
-                    f"Steam API Public: <code>{curr_steam_pub}</code>. Попробуйте позже.",
-                    chat_ids=[chat_id],
-                )
-
         if curr_steam_pub is not None:
             state["last_steam_public_version"] = curr_steam_pub
         save_state(state)
@@ -189,16 +130,6 @@ def main() -> None:
         print(f"Обнаружены изменения веток: {changes}")
     else:
         print("Изменений версий веток с прошлого опроса нет.")
-
-    # Сначала отвечаем на интерактивные запросы пользователей из Telegram
-    _handle_interactive_commands(
-        pending_cmds=pending_cmds,
-        prediction=prediction,
-        curr_branches=curr_branches,
-        events=events,
-        steam_versions=steam_versions,
-        now_utc=now_utc,
-    )
 
     patch_names = [p["patch"] for p in patches]
     if not state.get("known_patches"):
@@ -309,6 +240,13 @@ def main() -> None:
         state["last_notified_staging_version"] = curr_branches["staging"].get("client_version")
 
     append_observation(data["collected_at"], latest, curr_branches, prediction)
+    save_latest_snapshot(
+        collected_at=data["collected_at"],
+        curr_branches=curr_branches,
+        prediction=prediction,
+        events=events,
+        steam_versions=steam_versions,
+    )
     save_state(state)
     print("Состояние и наблюдение успешно сохранены.")
 
