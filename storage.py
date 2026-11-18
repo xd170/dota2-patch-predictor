@@ -1,7 +1,9 @@
 import json
 from typing import Any
 
-from config import DATA_DIR, OBSERVATIONS_FILE, STATE_FILE
+from config import DATA_DIR, OBSERVATIONS_FILE, STATE_FILE, TARGET_PATCH
+
+SNAPSHOT_FILE = DATA_DIR / "latest_snapshot.json"
 
 DEFAULT_STATE: dict[str, Any] = {
     "last_branches": {},
@@ -38,6 +40,53 @@ def save_state(state: dict[str, Any]) -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     STATE_FILE.write_text(
         json.dumps(state, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+def save_latest_snapshot(
+    collected_at: str,
+    curr_branches: dict[str, dict[str, Any]],
+    prediction: dict[str, Any],
+    events: list[dict[str, Any]],
+    steam_versions: dict[str, int | None],
+) -> None:
+    """Сохраняет легкий актуальный снимок для мгновенных ответов Cloudflare Worker."""
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+    feat = prediction.get("features", {})
+    payload = {
+        "target_patch": TARGET_PATCH,
+        "collected_at": collected_at,
+        "evaluated_at_minsk": prediction.get("evaluated_at_minsk"),
+        "signal_level": prediction.get("signal_level"),
+        "readiness_pct": prediction.get("readiness_pct"),
+        "probabilities": prediction.get("probabilities"),
+        "features": {
+            "st_2h": feat.get("st_2h", 0),
+            "st_6h": feat.get("st_6h", 0),
+            "st_24h": feat.get("st_24h", 0),
+            "st_7d": feat.get("st_7d", 0),
+            "days_since_major": feat.get("days_since_major"),
+        },
+        "eta": prediction.get("eta", {}),
+        "reasons": prediction.get("reasons", []),
+        "missing": prediction.get("missing", []),
+        "similar_patches": prediction.get("similar_patches", []),
+        "branches": curr_branches,
+        "steam_versions": steam_versions,
+        "recent_events": [
+            {
+                "branch": ev["branch"],
+                "from": ev.get("from"),
+                "to": ev.get("to"),
+                "delta": ev.get("delta", 0),
+                "seen_at": ev["dt"].isoformat(),
+            }
+            for ev in events[-10:]
+        ],
+    }
+    SNAPSHOT_FILE.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2),
         encoding="utf-8",
     )
 
