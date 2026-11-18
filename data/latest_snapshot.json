@@ -1,15 +1,15 @@
 {
   "target_patch": "7.42",
-  "collected_at": "2026-11-18T19:42:01.429685+00:00",
-  "evaluated_at_minsk": "2026-11-18 22:42",
+  "collected_at": "2026-11-18T19:45:52.721338+00:00",
+  "evaluated_at_minsk": "2026-11-18 22:45",
   "signal_level": "elevated",
-  "readiness_pct": 54.8,
+  "readiness_pct": 54.6,
   "probabilities": {
     "15": 0.2,
     "30": 0.2,
     "60": 0.5,
-    "120": 2.0,
-    "180": 5.7
+    "120": 2.1,
+    "180": 6.0
   },
   "features": {
     "st_2h": 0,
