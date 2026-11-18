@@ -27,6 +27,8 @@
   "last_notified_level": "elevated",
   "last_notified_staging_version": 3368,
   "public_release_alerted_version": null,
+  "last_steam_public_version": 37,
+  "last_pulse_date_minsk": null,
   "known_patches": [
     "7.34e",
     "7.35",
