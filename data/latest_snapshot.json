@@ -1,30 +1,30 @@
 {
   "target_patch": "7.42",
-  "collected_at": "2026-11-18T18:31:16.814260+00:00",
-  "evaluated_at_minsk": "2026-11-18 21:31",
+  "collected_at": "2026-11-18T18:35:49.131050+00:00",
+  "evaluated_at_minsk": "2026-11-18 21:35",
   "signal_level": "elevated",
-  "readiness_pct": 56.9,
+  "readiness_pct": 56.7,
   "probabilities": {
     "15": 0.1,
     "30": 0.1,
     "60": 0.2,
-    "120": 0.4,
-    "180": 1.8
+    "120": 0.5,
+    "180": 1.9
   },
   "features": {
     "st_2h": 0,
     "st_6h": 1,
     "st_24h": 2,
-    "st_7d": 17,
+    "st_7d": 16,
     "days_since_major": 238.8
   },
   "eta": {
-    "summary": "Через ~5–30 мин (ориентир ~15 мин → 21:36–22:01 Минск; окно архива 01:08–03:51)",
+    "summary": "Через ~5–30 мин (ориентир ~15 мин → 21:40–22:05 Минск; окно архива 01:08–03:51)",
     "clock_window": "01:08–03:51",
     "clock_median": "03:07"
   },
   "reasons": [
-    "7-дневный разогрев Staging: 17 смен (+24 билдов)"
+    "7-дневный разогрев Staging: 16 смен (+22 билдов)"
   ],
   "missing": [
     "вечернее сгущение Staging (2+ смены за 6 часов)",
@@ -76,7 +76,7 @@
       "server_deploy_version": 3370,
       "last_change_at": "2026-11-18T18:10:43+03:00",
       "changes_24h": 2,
-      "changes_7d": 17
+      "changes_7d": 16
     },
     "experimental": {
       "client_version": 7505,
