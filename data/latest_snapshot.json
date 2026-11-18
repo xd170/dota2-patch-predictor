@@ -1,9 +1,9 @@
 {
   "target_patch": "7.42",
-  "collected_at": "2026-11-18T16:25:30.456133+00:00",
-  "evaluated_at_minsk": "2026-11-18 19:25",
+  "collected_at": "2026-11-18T16:30:58.653877+00:00",
+  "evaluated_at_minsk": "2026-11-18 19:30",
   "signal_level": "elevated",
-  "readiness_pct": 69.8,
+  "readiness_pct": 66.5,
   "probabilities": {
     "15": 0.1,
     "30": 0.2,
@@ -19,13 +19,13 @@
     "days_since_major": 238.7
   },
   "eta": {
-    "summary": "Ближайшее окно по архиву: 02:47–03:51 Минск (медиана 03:07, через ~7.7 ч при вечернем ускорении Staging)",
-    "clock_window": "02:47–03:51",
+    "summary": "Ближайшее окно по архиву: 01:08–03:51 Минск (медиана 03:07, через ~7.6 ч при вечернем ускорении Staging)",
+    "clock_window": "01:08–03:51",
     "clock_median": "03:07"
   },
   "reasons": [
     "7-дневный разогрев Staging: 17 смен (+24 билдов)",
-    "За сутки 3 смен Staging (последняя 75 мин назад)"
+    "За сутки 3 смен Staging (последняя 80 мин назад)"
   ],
   "missing": [
     "сокращение интервалов между сборками (< 120 мин)",
@@ -33,8 +33,18 @@
   ],
   "similar_patches": [
     {
+      "patch": "7.38",
+      "similarity_pct": 89.7,
+      "release_time_minsk": "03:51",
+      "release_mins_of_day": 231,
+      "hist_st_72h": 5,
+      "hist_st_24h": 4,
+      "hist_st_6h": 1,
+      "hist_last_mins": 226.8
+    },
+    {
       "patch": "7.40",
-      "similarity_pct": 93.1,
+      "similarity_pct": 87.4,
       "release_time_minsk": "03:07",
       "release_mins_of_day": 187,
       "hist_st_72h": 7,
@@ -43,24 +53,14 @@
       "hist_last_mins": 123.5
     },
     {
-      "patch": "7.35",
-      "similarity_pct": 86.2,
-      "release_time_minsk": "02:47",
-      "release_mins_of_day": 167,
-      "hist_st_72h": 7,
-      "hist_st_24h": 3,
-      "hist_st_6h": 0,
-      "hist_last_mins": 739.9
-    },
-    {
-      "patch": "7.38",
-      "similarity_pct": 84.0,
-      "release_time_minsk": "03:51",
-      "release_mins_of_day": 231,
+      "patch": "7.39",
+      "similarity_pct": 82.8,
+      "release_time_minsk": "01:08",
+      "release_mins_of_day": 68,
       "hist_st_72h": 5,
-      "hist_st_24h": 4,
-      "hist_st_6h": 1,
-      "hist_last_mins": 226.8
+      "hist_st_24h": 2,
+      "hist_st_6h": 0,
+      "hist_last_mins": 516.8
     }
   ],
   "branches": {
