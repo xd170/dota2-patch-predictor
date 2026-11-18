@@ -1,9 +1,9 @@
 {
   "target_patch": "7.42",
-  "collected_at": "2026-11-18T14:40:28.770584+00:00",
-  "evaluated_at_minsk": "2026-11-18 17:40",
+  "collected_at": "2026-11-18T15:05:01.617867+00:00",
+  "evaluated_at_minsk": "2026-11-18 18:05",
   "signal_level": "elevated",
-  "readiness_pct": 39.5,
+  "readiness_pct": 39.4,
   "probabilities": {
     "15": 0.1,
     "30": 0.1,
@@ -19,7 +19,7 @@
     "days_since_major": 238.6
   },
   "eta": {
-    "summary": "Ближайшее окно по архиву: 01:08–03:51 Минск (медиана 02:47, через ~9.1 ч при вечернем ускорении Staging)",
+    "summary": "Ближайшее окно по архиву: 01:08–03:51 Минск (медиана 02:47, через ~8.7 ч при вечернем ускорении Staging)",
     "clock_window": "01:08–03:51",
     "clock_median": "02:47"
   },
@@ -87,9 +87,9 @@
     }
   },
   "steam_versions": {
-    "public": 37,
-    "staging": 37,
-    "experimental": 37
+    "public": 6976,
+    "staging": 3368,
+    "experimental": 7505
   },
   "recent_events": [
     {

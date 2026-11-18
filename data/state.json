@@ -27,7 +27,7 @@
   "last_notified_level": "elevated",
   "last_notified_staging_version": 3368,
   "public_release_alerted_version": null,
-  "last_steam_public_version": 37,
+  "last_steam_public_version": 6976,
   "last_pulse_date_minsk": null,
   "last_telegram_update_id": 288600771,
   "telegram_commands_registered": true,
@@ -65,5 +65,6 @@
     "7.41e",
     "7.41f"
   ],
-  "target_patch_released": false
+  "target_patch_released": false,
+  "last_steam_staging_version": 3368
 }
