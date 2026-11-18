@@ -10,6 +10,8 @@ DEFAULT_STATE: dict[str, Any] = {
     "last_notified_level": "calm",
     "last_notified_staging_version": None,
     "public_release_alerted_version": None,
+    "last_steam_public_version": None,
+    "last_pulse_date_minsk": None,
     "known_patches": [],
     "target_patch_released": False,
 }
