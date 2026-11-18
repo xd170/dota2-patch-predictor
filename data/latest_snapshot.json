@@ -1,40 +1,50 @@
 {
   "target_patch": "7.42",
-  "collected_at": "2026-11-18T17:40:40.477282+00:00",
-  "evaluated_at_minsk": "2026-11-18 20:40",
+  "collected_at": "2026-11-18T17:44:30.352301+00:00",
+  "evaluated_at_minsk": "2026-11-18 20:44",
   "signal_level": "elevated",
-  "readiness_pct": 60.5,
+  "readiness_pct": 57.5,
   "probabilities": {
     "15": 0.1,
     "30": 0.1,
     "60": 0.2,
     "120": 0.2,
-    "180": 0.7
+    "180": 0.6
   },
   "features": {
     "st_2h": 0,
     "st_6h": 1,
-    "st_24h": 3,
+    "st_24h": 2,
     "st_7d": 17,
-    "days_since_major": 238.7
+    "days_since_major": 238.8
   },
   "eta": {
-    "summary": "Ближайшее окно по архиву: 01:08–03:51 Минск (медиана 03:07, через ~6.5 ч при вечернем ускорении Staging)",
+    "summary": "Ближайшее окно по архиву: 01:08–03:51 Минск (медиана 03:07, через ~6.4 ч при вечернем ускорении Staging)",
     "clock_window": "01:08–03:51",
     "clock_median": "03:07"
   },
   "reasons": [
-    "7-дневный разогрев Staging: 17 смен (+24 билдов)",
-    "За сутки 3 смен Staging (последняя 150 мин назад)"
+    "7-дневный разогрев Staging: 17 смен (+24 билдов)"
   ],
   "missing": [
+    "вечернее сгущение Staging (2+ смены за 6 часов)",
     "сокращение интервалов между сборками (< 120 мин)",
     "вход в ночное окно Valve (01:00–04:00 по Минску)"
   ],
   "similar_patches": [
     {
+      "patch": "7.39",
+      "similarity_pct": 87.4,
+      "release_time_minsk": "01:08",
+      "release_mins_of_day": 68,
+      "hist_st_72h": 5,
+      "hist_st_24h": 2,
+      "hist_st_6h": 0,
+      "hist_last_mins": 516.8
+    },
+    {
       "patch": "7.38",
-      "similarity_pct": 89.7,
+      "similarity_pct": 85.1,
       "release_time_minsk": "03:51",
       "release_mins_of_day": 231,
       "hist_st_72h": 5,
@@ -44,23 +54,13 @@
     },
     {
       "patch": "7.40",
-      "similarity_pct": 87.4,
+      "similarity_pct": 82.8,
       "release_time_minsk": "03:07",
       "release_mins_of_day": 187,
       "hist_st_72h": 7,
       "hist_st_24h": 3,
       "hist_st_6h": 2,
       "hist_last_mins": 123.5
-    },
-    {
-      "patch": "7.39",
-      "similarity_pct": 82.8,
-      "release_time_minsk": "01:08",
-      "release_mins_of_day": 68,
-      "hist_st_72h": 5,
-      "hist_st_24h": 2,
-      "hist_st_6h": 0,
-      "hist_last_mins": 516.8
     }
   ],
   "branches": {
@@ -75,7 +75,7 @@
       "client_version": 3370,
       "server_deploy_version": 3370,
       "last_change_at": "2026-11-18T18:10:43+03:00",
-      "changes_24h": 3,
+      "changes_24h": 2,
       "changes_7d": 17
     },
     "experimental": {
