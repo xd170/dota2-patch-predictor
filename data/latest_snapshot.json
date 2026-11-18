@@ -1,15 +1,15 @@
 {
   "target_patch": "7.42",
-  "collected_at": "2026-11-18T19:50:49.080918+00:00",
-  "evaluated_at_minsk": "2026-11-18 22:50",
+  "collected_at": "2026-11-18T19:55:31.155096+00:00",
+  "evaluated_at_minsk": "2026-11-18 22:55",
   "signal_level": "elevated",
-  "readiness_pct": 54.5,
+  "readiness_pct": 54.4,
   "probabilities": {
     "15": 0.2,
     "30": 0.3,
     "60": 0.6,
-    "120": 2.3,
-    "180": 6.3
+    "120": 2.5,
+    "180": 6.7
   },
   "features": {
     "st_2h": 0,
@@ -19,7 +19,7 @@
     "days_since_major": 238.8
   },
   "eta": {
-    "summary": "Ближайшее окно по архиву: 01:08–03:51 Минск (медиана 03:07, через ~4.3 ч при вечернем ускорении Staging)",
+    "summary": "Ближайшее окно по архиву: 01:08–03:51 Минск (медиана 03:07, через ~4.2 ч при вечернем ускорении Staging)",
     "clock_window": "01:08–03:51",
     "clock_median": "03:07"
   },
@@ -65,11 +65,11 @@
   ],
   "branches": {
     "public": {
-      "client_version": 6976,
+      "client_version": 6978,
       "server_deploy_version": 6978,
-      "last_change_at": "2026-11-17T04:24:28+03:00",
-      "changes_24h": 0,
-      "changes_7d": 3
+      "last_change_at": "2026-11-18T22:54:46+03:00",
+      "changes_24h": 1,
+      "changes_7d": 4
     },
     "staging": {
       "client_version": 3370,
@@ -92,13 +92,6 @@
     "experimental": 7505
   },
   "recent_events": [
-    {
-      "branch": "staging",
-      "from": 3357,
-      "to": 3359,
-      "delta": 2,
-      "seen_at": "2026-11-14T01:33:51+00:00"
-    },
     {
       "branch": "staging",
       "from": 3359,
@@ -161,6 +154,13 @@
       "to": 3370,
       "delta": 2,
       "seen_at": "2026-11-18T15:10:43+00:00"
+    },
+    {
+      "branch": "public",
+      "from": 6976,
+      "to": 6978,
+      "delta": 2,
+      "seen_at": "2026-11-18T19:54:46+00:00"
     }
   ]
 }

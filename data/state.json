@@ -1,11 +1,11 @@
 {
   "last_branches": {
     "public": {
-      "client_version": 6976,
+      "client_version": 6978,
       "server_deploy_version": 6978,
-      "last_change_at": "2026-11-17T04:24:28+03:00",
-      "changes_24h": 0,
-      "changes_7d": 3
+      "last_change_at": "2026-11-18T22:54:46+03:00",
+      "changes_24h": 1,
+      "changes_7d": 4
     },
     "staging": {
       "client_version": 3370,
