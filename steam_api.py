@@ -6,7 +6,7 @@ import requests
 
 from config import HTTP_HEADERS
 
-STEAM_UP_TO_DATE_URL = "https://api.steampowered.com/ISteamApps/UpToDateCheck/v1/"
+STEAM_GC_VERSION_URL = "https://api.steampowered.com/IGCVersion_{appid}/GetServerVersion/v1/"
 STEAM_NEWS_URL = "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/"
 STEAM_TIMEOUT = 10
 
@@ -17,30 +17,53 @@ BRANCH_APPIDS = {
 }
 
 
-def check_steam_versions() -> dict[str, int | None]:
+def check_steam_versions_detailed() -> dict[str, dict[str, int | None]]:
     """
-    Напрямую запрашивает у Steam Web API актуальный номер версии (required_version).
-    Если ветка закрыта от публичного UpToDateCheck, безопасно возвращает None.
+    Напрямую запрашивает у Steam Web API (IGCVersion) deploy_version и active_version
+    для public, staging и experimental веток Dota 2.
     """
-    versions: dict[str, int | None] = {}
+    details: dict[str, dict[str, int | None]] = {}
     for branch, appid in BRANCH_APPIDS.items():
+        url = STEAM_GC_VERSION_URL.format(appid=appid)
         try:
             response = requests.get(
-                STEAM_UP_TO_DATE_URL,
-                params={"appid": appid, "version": 0, "format": "json"},
+                url,
+                params={"format": "json"},
                 headers=HTTP_HEADERS,
                 timeout=STEAM_TIMEOUT,
             )
             if not response.ok:
-                versions[branch] = None
+                details[branch] = {"deploy_version": None, "active_version": None}
                 continue
-            payload = response.json().get("response", {})
-            if payload.get("success") and payload.get("required_version") is not None:
-                versions[branch] = int(payload["required_version"])
+            result = response.json().get("result", {})
+            if result.get("success"):
+                deploy_v = result.get("deploy_version")
+                active_v = result.get("active_version")
+                details[branch] = {
+                    "deploy_version": int(deploy_v) if deploy_v is not None else None,
+                    "active_version": int(active_v) if active_v is not None else None,
+                }
             else:
-                versions[branch] = None
+                details[branch] = {"deploy_version": None, "active_version": None}
         except Exception:
-            versions[branch] = None
+            details[branch] = {"deploy_version": None, "active_version": None}
+    return details
+
+
+def check_steam_versions() -> dict[str, int | None]:
+    """
+    Возвращает актуальный номер билда по каждой ветке напрямую от серверов Valve.
+    Используется deploy_version (она обновляется первой при начале выкатки).
+    """
+    details = check_steam_versions_detailed()
+    versions: dict[str, int | None] = {}
+    for branch, info in details.items():
+        dv = info.get("deploy_version")
+        av = info.get("active_version")
+        if dv is not None and av is not None:
+            versions[branch] = max(dv, av)
+        else:
+            versions[branch] = dv if dv is not None else av
     return versions
 
 
@@ -65,7 +88,6 @@ def find_steam_patch_announcement(target_patch: str) -> dict[str, Any] | None:
         )
         if not response.ok:
             return None
-
         items = response.json().get("appnews", {}).get("newsitems", [])
         for item in items:
             title = str(item.get("title", ""))
