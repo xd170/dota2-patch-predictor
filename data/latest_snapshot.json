@@ -1,27 +1,27 @@
 {
   "target_patch": "7.42",
-  "collected_at": "2026-11-18T20:10:43.471322+00:00",
-  "evaluated_at_minsk": "2026-11-18 23:10",
+  "collected_at": "2026-11-18T20:15:41.559305+00:00",
+  "evaluated_at_minsk": "2026-11-18 23:15",
   "signal_level": "elevated",
-  "readiness_pct": 53.9,
+  "readiness_pct": 13.4,
   "probabilities": {
-    "15": 0.2,
-    "30": 0.4,
-    "60": 0.9,
-    "120": 3.3,
-    "180": 7.7
+    "15": 0.1,
+    "30": 0.1,
+    "60": 0.1,
+    "120": 0.2,
+    "180": 0.3
   },
   "features": {
     "st_2h": 0,
     "st_6h": 1,
     "st_24h": 2,
     "st_7d": 16,
-    "days_since_major": 238.9
+    "days_since_major": 0.0
   },
   "eta": {
-    "summary": "Ближайшее окно по архиву: 01:08–03:51 Минск (медиана 03:07, через ~4.0 ч при вечернем ускорении Staging)",
-    "clock_window": "01:08–03:51",
-    "clock_median": "03:07"
+    "summary": "Активность низкая; базовое историческое окно релизов: 01:08–22:54 Минск (медиана 03:51)",
+    "clock_window": "01:08–22:54",
+    "clock_median": "03:51"
   },
   "reasons": [
     "7-дневный разогрев Staging: 16 смен (+22 билдов)"
@@ -32,6 +32,16 @@
     "вход в ночное окно Valve (01:00–04:00 по Минску)"
   ],
   "similar_patches": [
+    {
+      "patch": "7.42",
+      "similarity_pct": 100.0,
+      "release_time_minsk": "22:54",
+      "release_mins_of_day": 1374,
+      "hist_st_72h": 6,
+      "hist_st_24h": 2,
+      "hist_st_6h": 1,
+      "hist_last_mins": 284.0
+    },
     {
       "patch": "7.39",
       "similarity_pct": 87.4,
@@ -51,16 +61,6 @@
       "hist_st_24h": 4,
       "hist_st_6h": 1,
       "hist_last_mins": 226.8
-    },
-    {
-      "patch": "7.40",
-      "similarity_pct": 82.8,
-      "release_time_minsk": "03:07",
-      "release_mins_of_day": 187,
-      "hist_st_72h": 7,
-      "hist_st_24h": 3,
-      "hist_st_6h": 2,
-      "hist_last_mins": 123.5
     }
   ],
   "branches": {
