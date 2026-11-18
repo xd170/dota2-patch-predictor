@@ -12,6 +12,8 @@ DEFAULT_STATE: dict[str, Any] = {
     "public_release_alerted_version": None,
     "last_steam_public_version": None,
     "last_pulse_date_minsk": None,
+    "last_telegram_update_id": None,
+    "telegram_commands_registered": False,
     "known_patches": [],
     "target_patch_released": False,
 }
@@ -21,7 +23,6 @@ def load_state() -> dict[str, Any]:
     """Загружает сохраненное состояние между запусками GitHub Actions."""
     if not STATE_FILE.exists():
         return dict(DEFAULT_STATE)
-
     try:
         data = json.loads(STATE_FILE.read_text(encoding="utf-8"))
         merged = dict(DEFAULT_STATE)
@@ -65,14 +66,12 @@ def detect_branch_changes(
     """Возвращает список веток, у которых изменилась client_version."""
     if not prev_branches:
         return []
-
     changes: list[dict[str, Any]] = []
     for branch_name in ("staging", "public", "experimental"):
         prev = prev_branches.get(branch_name)
         curr = curr_branches.get(branch_name)
         if not prev or not curr:
             continue
-
         old_v = prev.get("client_version")
         new_v = curr.get("client_version")
         if old_v is not None and new_v is not None and old_v != new_v:
