@@ -1,11 +1,12 @@
 import os
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any
 
 from collector import collect_all
 from config import TARGET_PATCH
-from features import EventIndex, normalize_events, normalize_patches, parse_iso_utc
+from features import EventIndex, MINSK_TZ, normalize_events, normalize_patches, parse_iso_utc
 from predictor import predict
+from steam_api import check_steam_versions, find_steam_patch_announcement
 from storage import (
     append_observation,
     detect_branch_changes,
@@ -14,6 +15,7 @@ from storage import (
     save_state,
 )
 from telegram_notifier import (
+    format_daily_pulse_message,
     format_prediction_message,
     format_release_message,
     send_telegram_message,
@@ -40,8 +42,64 @@ def main() -> None:
     latest = data["latest"]
     history = data["history"]
     now_utc = parse_iso_utc(data["collected_at"])
+    minsk_now = now_utc.astimezone(MINSK_TZ)
+    minsk_str = minsk_now.strftime("%Y-%m-%d %H:%M")
 
-    # Объединяем полный архив и последние 500 событий, чтобы не потерять свежие минуты
+    steam_versions = check_steam_versions()
+    steam_announcement = find_steam_patch_announcement(TARGET_PATCH)
+    print(f"Steam API прямая проверка: {steam_versions}")
+
+    state = load_state()
+
+    prev_steam_pub = state.get("last_steam_public_version")
+    curr_steam_pub = steam_versions.get("public")
+    steam_public_change: dict[str, Any] | None = None
+    if (
+        prev_steam_pub is not None
+        and curr_steam_pub is not None
+        and prev_steam_pub != curr_steam_pub
+    ):
+        steam_public_change = {
+            "branch": "public",
+            "old_version": prev_steam_pub,
+            "new_version": curr_steam_pub,
+            "delta": curr_steam_pub - prev_steam_pub,
+        }
+
+    # Аварийный режим, если Finargot временно не отвечает
+    if latest is None:
+        print("Переключаемся на резервную проверку только через Steam API.")
+        if steam_announcement and not state.get("target_patch_released", False):
+            msg = format_release_message(
+                patch_name=TARGET_PATCH,
+                evaluated_minsk=minsk_str,
+                public_change=steam_public_change,
+                confirmed_via_patches=True,
+                announcement=steam_announcement,
+            )
+            send_telegram_message(msg)
+            state["target_patch_released"] = True
+        elif (
+            steam_public_change
+            and not state.get("target_patch_released", False)
+            and state.get("last_notified_level") in ("high", "critical")
+            and state.get("public_release_alerted_version") != steam_public_change["new_version"]
+        ):
+            msg = format_release_message(
+                patch_name=TARGET_PATCH,
+                evaluated_minsk=minsk_str,
+                public_change=steam_public_change,
+                confirmed_via_patches=False,
+                announcement=None,
+            )
+            send_telegram_message(msg)
+            state["public_release_alerted_version"] = steam_public_change["new_version"]
+        if curr_steam_pub is not None:
+            state["last_steam_public_version"] = curr_steam_pub
+        save_state(state)
+        return
+
+    # Основной режим: объединяем архив и свежие 500 событий
     raw_events = (history.get("events", []) or []) + (latest.get("events", []) or [])
     events = normalize_events(raw_events)
     patches = normalize_patches(latest.get("patches", []) or [])
@@ -57,7 +115,6 @@ def main() -> None:
         f"{probs[15]}/{probs[30]}/{probs[60]}/{probs[120]}/{probs[180]}%"
     )
 
-    state = load_state()
     curr_branches = extract_branch_snapshot(latest)
     prev_branches = state.get("last_branches", {})
     changes = detect_branch_changes(prev_branches, curr_branches)
@@ -67,17 +124,17 @@ def main() -> None:
     else:
         print("Изменений версий веток с прошлого опроса нет.")
 
-    # Инициализация известного списка патчей при первом запуске
     patch_names = [p["patch"] for p in patches]
     if not state.get("known_patches"):
         state["known_patches"] = patch_names
 
     target_confirmed_now = (
-        TARGET_PATCH in patch_names and not state.get("target_patch_released", False)
+        (TARGET_PATCH in patch_names or steam_announcement is not None)
+        and not state.get("target_patch_released", False)
     )
 
     staging_change = next((c for c in changes if c["branch"] == "staging"), None)
-    public_change = next((c for c in changes if c["branch"] == "public"), None)
+    public_change = next((c for c in changes if c["branch"] == "public"), None) or steam_public_change
 
     # 1. Официальное подтверждение выхода целевого патча
     if target_confirmed_now:
@@ -86,6 +143,7 @@ def main() -> None:
             evaluated_minsk=prediction["evaluated_at_minsk"],
             public_change=public_change,
             confirmed_via_patches=True,
+            announcement=steam_announcement,
         )
         send_telegram_message(msg)
         state["target_patch_released"] = True
@@ -110,12 +168,13 @@ def main() -> None:
             evaluated_minsk=prediction["evaluated_at_minsk"],
             public_change=public_change,
             confirmed_via_patches=False,
+            announcement=steam_announcement,
         )
         send_telegram_message(msg)
         state["public_release_alerted_version"] = public_change["new_version"]
         state["last_notified_at_utc"] = now_utc.isoformat()
 
-    # 3. Обычные прогнозные уведомления (Staging / рост вероятности / ручной тест)
+    # 3. Прогнозные уведомления или вечерний «пульс»
     elif not state.get("target_patch_released", False):
         p180 = probs[180]
         prev_p180 = float(state.get("last_notified_p180", 0.0) or 0.0)
@@ -152,10 +211,24 @@ def main() -> None:
                 if staging_change:
                     state["last_notified_staging_version"] = staging_change["new_version"]
         else:
-            print("Условие для отправки в Telegram не достигнуто — уведомление не требуется.")
+            # Вечерний «пульс» 1 раз в сутки в 21:00–21:30 Минск
+            today_minsk = minsk_now.strftime("%Y-%m-%d")
+            in_pulse_window = minsk_now.hour == 21 and minsk_now.minute <= 30
+            if (
+                in_pulse_window
+                and state.get("last_pulse_date_minsk") != today_minsk
+                and mins_since_notif >= 120.0
+            ):
+                pulse_msg = format_daily_pulse_message(prediction, steam_versions)
+                res = send_telegram_message(pulse_msg)
+                if not res.get("skipped"):
+                    state["last_pulse_date_minsk"] = today_minsk
+            else:
+                print("Условие для отправки в Telegram не достигнуто — уведомление не требуется.")
 
-    # Обновляем состояние и сохраняем наблюдение
     state["last_branches"] = curr_branches
+    if curr_steam_pub is not None:
+        state["last_steam_public_version"] = curr_steam_pub
     if "staging" in curr_branches and state.get("last_notified_staging_version") is None:
         state["last_notified_staging_version"] = curr_branches["staging"].get("client_version")
 
