@@ -1,7 +1,7 @@
 {
   "target_patch": "7.42",
-  "collected_at": "2026-11-18T13:45:43.823143+00:00",
-  "evaluated_at_minsk": "2026-11-18 16:45",
+  "collected_at": "2026-11-18T13:47:32.288754+00:00",
+  "evaluated_at_minsk": "2026-11-18 16:47",
   "signal_level": "elevated",
   "readiness_pct": 39.6,
   "probabilities": {
