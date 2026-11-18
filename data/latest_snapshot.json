@@ -1,7 +1,7 @@
 {
   "target_patch": "7.42",
-  "collected_at": "2026-11-18T18:35:49.131050+00:00",
-  "evaluated_at_minsk": "2026-11-18 21:35",
+  "collected_at": "2026-11-18T18:36:13.773628+00:00",
+  "evaluated_at_minsk": "2026-11-18 21:36",
   "signal_level": "elevated",
   "readiness_pct": 56.7,
   "probabilities": {
@@ -19,7 +19,7 @@
     "days_since_major": 238.8
   },
   "eta": {
-    "summary": "Через ~5–30 мин (ориентир ~15 мин → 21:40–22:05 Минск; окно архива 01:08–03:51)",
+    "summary": "Через ~5–30 мин (ориентир ~15 мин → 21:41–22:06 Минск; окно архива 01:08–03:51)",
     "clock_window": "01:08–03:51",
     "clock_median": "03:07"
   },
