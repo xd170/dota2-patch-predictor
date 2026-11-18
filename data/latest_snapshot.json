@@ -1,0 +1,166 @@
+{
+  "target_patch": "7.42",
+  "collected_at": "2026-11-18T13:24:28.338047+00:00",
+  "evaluated_at_minsk": "2026-11-18 16:24",
+  "signal_level": "elevated",
+  "readiness_pct": 39.7,
+  "probabilities": {
+    "15": 0.1,
+    "30": 0.1,
+    "60": 0.1,
+    "120": 0.1,
+    "180": 0.1
+  },
+  "features": {
+    "st_2h": 0,
+    "st_6h": 0,
+    "st_24h": 2,
+    "st_7d": 16,
+    "days_since_major": 238.6
+  },
+  "eta": {
+    "summary": "Ближайшее окно по архиву: 01:08–03:51 Минск (медиана 02:47, через ~10.4 ч при вечернем ускорении Staging)",
+    "clock_window": "01:08–03:51",
+    "clock_median": "02:47"
+  },
+  "reasons": [
+    "7-дневный разогрев Staging: 16 смен (+22 билдов)"
+  ],
+  "missing": [
+    "вечернее сгущение Staging (2+ смены за 6 часов)",
+    "сокращение интервалов между сборками (< 120 мин)",
+    "вход в ночное окно Valve (01:00–04:00 по Минску)"
+  ],
+  "similar_patches": [
+    {
+      "patch": "7.39",
+      "similarity_pct": 96.6,
+      "release_time_minsk": "01:08",
+      "release_mins_of_day": 68,
+      "hist_st_72h": 5,
+      "hist_st_24h": 2,
+      "hist_st_6h": 0,
+      "hist_last_mins": 516.8
+    },
+    {
+      "patch": "7.35",
+      "similarity_pct": 80.5,
+      "release_time_minsk": "02:47",
+      "release_mins_of_day": 167,
+      "hist_st_72h": 7,
+      "hist_st_24h": 3,
+      "hist_st_6h": 0,
+      "hist_last_mins": 739.9
+    },
+    {
+      "patch": "7.38",
+      "similarity_pct": 80.5,
+      "release_time_minsk": "03:51",
+      "release_mins_of_day": 231,
+      "hist_st_72h": 5,
+      "hist_st_24h": 4,
+      "hist_st_6h": 1,
+      "hist_last_mins": 226.8
+    }
+  ],
+  "branches": {
+    "public": {
+      "client_version": 6976,
+      "server_deploy_version": 6976,
+      "last_change_at": "2026-11-17T04:24:28+03:00",
+      "changes_24h": 0,
+      "changes_7d": 3
+    },
+    "staging": {
+      "client_version": 3368,
+      "server_deploy_version": 3368,
+      "last_change_at": "2026-11-18T03:20:05+03:00",
+      "changes_24h": 2,
+      "changes_7d": 16
+    },
+    "experimental": {
+      "client_version": 7505,
+      "server_deploy_version": 7505,
+      "last_change_at": "2026-11-10T03:10:31+03:00",
+      "changes_24h": 0,
+      "changes_7d": 0
+    }
+  },
+  "steam_versions": {
+    "public": 37,
+    "staging": 37,
+    "experimental": 37
+  },
+  "recent_events": [
+    {
+      "branch": "staging",
+      "from": 3354,
+      "to": 3357,
+      "delta": 3,
+      "seen_at": "2026-11-13T22:26:45+00:00"
+    },
+    {
+      "branch": "staging",
+      "from": 3357,
+      "to": 3359,
+      "delta": 2,
+      "seen_at": "2026-11-14T01:33:51+00:00"
+    },
+    {
+      "branch": "staging",
+      "from": 3359,
+      "to": 3360,
+      "delta": 1,
+      "seen_at": "2026-11-14T20:48:49+00:00"
+    },
+    {
+      "branch": "staging",
+      "from": 3360,
+      "to": 3361,
+      "delta": 1,
+      "seen_at": "2026-11-15T16:26:51+00:00"
+    },
+    {
+      "branch": "staging",
+      "from": 3361,
+      "to": 3363,
+      "delta": 2,
+      "seen_at": "2026-11-16T01:04:45+00:00"
+    },
+    {
+      "branch": "staging",
+      "from": 3363,
+      "to": 3364,
+      "delta": 1,
+      "seen_at": "2026-11-16T21:21:21+00:00"
+    },
+    {
+      "branch": "public",
+      "from": 6975,
+      "to": 6976,
+      "delta": 1,
+      "seen_at": "2026-11-17T01:24:28+00:00"
+    },
+    {
+      "branch": "staging",
+      "from": 3364,
+      "to": 3365,
+      "delta": 1,
+      "seen_at": "2026-11-17T03:18:45+00:00"
+    },
+    {
+      "branch": "staging",
+      "from": 3365,
+      "to": 3366,
+      "delta": 1,
+      "seen_at": "2026-11-17T17:40:59+00:00"
+    },
+    {
+      "branch": "staging",
+      "from": 3366,
+      "to": 3368,
+      "delta": 2,
+      "seen_at": "2026-11-18T00:20:05+00:00"
+    }
+  ]
+}
