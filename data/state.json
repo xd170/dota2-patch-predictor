@@ -1,0 +1,65 @@
+{
+  "last_branches": {
+    "public": {
+      "client_version": 6976,
+      "server_deploy_version": 6976,
+      "last_change_at": "2026-11-17T04:24:28+03:00",
+      "changes_24h": 0,
+      "changes_7d": 3
+    },
+    "staging": {
+      "client_version": 3368,
+      "server_deploy_version": 3368,
+      "last_change_at": "2026-11-18T03:20:05+03:00",
+      "changes_24h": 2,
+      "changes_7d": 16
+    },
+    "experimental": {
+      "client_version": 7505,
+      "server_deploy_version": 7505,
+      "last_change_at": "2026-11-10T03:10:31+03:00",
+      "changes_24h": 0,
+      "changes_7d": 0
+    }
+  },
+  "last_notified_at_utc": "2026-11-18T11:27:55.324197+00:00",
+  "last_notified_p180": 0.1,
+  "last_notified_level": "elevated",
+  "last_notified_staging_version": 3368,
+  "public_release_alerted_version": null,
+  "known_patches": [
+    "7.34e",
+    "7.35",
+    "7.35b",
+    "7.35c",
+    "7.35d",
+    "7.36",
+    "7.36a",
+    "7.36b",
+    "7.36c",
+    "7.37",
+    "7.37b",
+    "7.37c",
+    "7.37d",
+    "7.37e",
+    "7.38",
+    "7.38b",
+    "7.38c",
+    "7.39",
+    "7.39b",
+    "7.39c",
+    "7.39d",
+    "7.39e",
+    "7.40",
+    "7.40b",
+    "7.40c",
+    "7.41",
+    "7.41a",
+    "7.41b",
+    "7.41c",
+    "7.41d",
+    "7.41e",
+    "7.41f"
+  ],
+  "target_patch_released": false
+}
