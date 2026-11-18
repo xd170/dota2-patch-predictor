@@ -2,7 +2,7 @@
   "last_branches": {
     "public": {
       "client_version": 6976,
-      "server_deploy_version": 6976,
+      "server_deploy_version": 6978,
       "last_change_at": "2026-11-17T04:24:28+03:00",
       "changes_24h": 0,
       "changes_7d": 3
@@ -27,7 +27,7 @@
   "last_notified_level": "elevated",
   "last_notified_staging_version": 3370,
   "public_release_alerted_version": null,
-  "last_steam_public_version": 6976,
+  "last_steam_public_version": 6978,
   "last_pulse_date_minsk": "2026-11-18",
   "last_telegram_update_id": 288600771,
   "telegram_commands_registered": true,
