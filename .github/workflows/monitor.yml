@@ -3,6 +3,8 @@ name: Dota 2 Patch Monitor
 on:
   schedule:
     - cron: "*/5 * * * *"
+  repository_dispatch:
+    types: [trigger-monitor]
   workflow_dispatch:
     inputs:
       force_notify:
@@ -48,7 +50,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add data/observations.jsonl data/state.json
+          git add data/
 
           if git diff --cached --quiet; then
             echo "No changes to commit."
