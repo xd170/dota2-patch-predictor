@@ -23,7 +23,7 @@ def _release_window_density(utc_dt: datetime) -> float:
         diff = 24.0 - diff
 
     gaussian = math.exp(-0.5 * (diff / 1.45) ** 2)
-    return 0.025 + 0.975 * gaussian
+    return 0.02 + 0.98 * gaussian
 
 
 def _horizon_window_factor(now_utc: datetime, horizon_minutes: int) -> float:
@@ -203,11 +203,11 @@ def _build_explanation(
         missing.append("вход в ночное окно Valve (01:00–04:00 по Минску)")
 
     p180 = probs.get(180, 0.0)
-    if readiness >= 0.60 and p180 >= 25.0:
+    if readiness >= 0.75 and p180 >= 25.0:
         level = "critical"
-    elif readiness >= 0.42 and p180 >= 12.0:
+    elif readiness >= 0.58 and p180 >= 10.0:
         level = "high"
-    elif readiness >= 0.25 or features["st_7d"] >= 10:
+    elif readiness >= 0.35 or features["st_7d"] >= 10:
         level = "elevated"
     else:
         level = "calm"
@@ -220,7 +220,7 @@ def predict(
     index: EventIndex,
     patches: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    """Возвращает краткосрочный прогноз на 15, 30, 60, 120 и 180 минут."""
+    """Возвращает откалиброванный краткосрочный прогноз на 15, 30, 60, 120 и 180 минут."""
     now_ts = now_utc.timestamp()
     past_majors = [
         p for p in patches if p["is_major"] and p["release_ts"] < now_ts
@@ -231,18 +231,18 @@ def predict(
     readiness, components = _compute_readiness(features)
 
     horizon_caps = {
-        15: 16.0,
-        30: 26.0,
-        60: 38.0,
-        120: 52.0,
-        180: 62.0,
+        15: 18.0,
+        30: 28.0,
+        60: 42.0,
+        120: 56.0,
+        180: 66.0,
     }
 
     probabilities: dict[int, float] = {}
     prev_prob = 0.0
     for horizon in PREDICTION_HORIZONS_MINUTES:
         win_factor = _horizon_window_factor(now_utc, horizon)
-        combined = (readiness ** 1.35) * (win_factor ** 1.15)
+        combined = (readiness ** 2.55) * (win_factor ** 1.35)
         raw_pct = 0.1 + horizon_caps[horizon] * combined
         calibrated = round(max(prev_prob, min(raw_pct, horizon_caps[horizon])), 1)
         probabilities[horizon] = calibrated
